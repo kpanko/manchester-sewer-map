@@ -143,7 +143,8 @@ const OTYPE={HEADWALL:"headwall",FLARED_END:"flared end",PIPE:"open pipe end",CU
 const N=DATA.names;
 const tc=s=>(s||"").toLowerCase().replace(/\b([a-z])/g,m=>m.toUpperCase()).replace(/\bSt\. /,"St. ");
 const P=DATA.pipes.map(r=>({id:r[0],dia:r[1],h:r[2],w:r[3],shape:r[4],mat:r[5],culv:r[6],ui:r[7],di:r[8],owner:r[9],yr:r[10],status:r[11],rem:r[12],len:r[13],st:r[14],term:r[15],nx:r[16],paths:r[17]}));
-const T=DATA.terms.map(r=>({kind:r[0],x:r[1],y:r[2],color:r[3],water:r[4],named:r[5],outlet:r[6],otype:r[7],omat:r[8],ms4:r[9],orem:r[10],oinv:r[11]}));
+const T=DATA.terms.map(r=>({kind:r[0],x:r[1],y:r[2],color:r[3],water:r[4],named:r[5],outlet:r[6],otype:r[7],omat:r[8],ms4:r[9],orem:r[10],oinv:r[11],endpre:r[12]}));
+const ENDS={"80":"a catch basin","84":"a drainage manhole","82":"a drop inlet","91":"an inlet structure","87":"a water quality structure","95":"a structure","96":"a junction chamber","97":"a junction manhole","88":"a pipe end"};
 const UP=P.map(()=>[]);P.forEach((p,i)=>{if(p.nx>=0)UP[p.nx].push(i)});
 const toLL=flat=>{const o=[];for(let k=0;k<flat.length;k+=2)o.push([flat[k+1],flat[k]]);return o};
 const circ=p=>p.shape==="CIRC"||!p.shape||p.shape==="UNK";
@@ -240,7 +241,7 @@ function select(i,zoom){
       :`Comes out ${t.otype&&OTYPE[t.otype]?"at a "+OTYPE[t.otype]+" ":""}into a stream or wetland that isn't on the town's water map${t.named?`; the nearest named water is ${esc(tc(t.named[0]))}, ${t.named[1].toLocaleString()} ft away`:""}.`;
   } else if(t.kind===1) where="Ends in a dry well or infiltrator, where the water soaks into the ground instead of reaching a stream.";
   else if(t.kind===2) where="Ends in a detention basin, which holds stormwater and releases it slowly.";
-  else where="The town's data doesn't show where this route goes next.";
+  else where=`The town's data stops here: the last pipe ends at ${ENDS[t.endpre]||"a structure"} with no pipe recorded leaving it. The water does go somewhere, but that connection isn't in the town's records.`;
   panel.innerHTML=`
   <section>
     <h3>Selected pipe</h3>

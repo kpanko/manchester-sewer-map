@@ -83,6 +83,54 @@ def nxt(p):
 NX=[];HOW=[]
 for p in P:
     t,h=nxt(p); NX.append(t); HOW.append(h)
+# ---- second pass: bridge short gaps (<=25 ft) at dead ends and loops ----
+def _trace_basic(i):
+    seen=set();path=[]
+    while i is not None and i not in seen:
+        seen.add(i);path.append(i)
+        t=NX[i]
+        if t is None: return path,None
+        if t[0]!='P': return path,t
+        i=t[1]
+    return path,('LOOP',i)
+UPL=collections.defaultdict(list)
+for i,t in enumerate(NX):
+    if t is not None and t[0]=='P': UPL[t[1]].append(i)
+def _upset(i):
+    s={i};st=[i]
+    while st:
+        j=st.pop()
+        for k in UPL[j]:
+            if k not in s: s.add(k);st.append(k)
+    return s
+BRIDGED=0
+for _round in range(3):
+    changed=0
+    for p in P:
+        path,t=_trace_basic(p['i'])
+        if not (t is None or t[0]=='LOOP'): continue
+        if t is None: members=[path[-1]]
+        else:
+            k0=path.index(t[1]); members=path[k0:]   # the cycle
+        cyc=set(members); best=None
+        for m in members:
+            last=P[m]; ups=_upset(m)|cyc
+            for j,d in near(last['e'],5).items():
+                q=P[j]
+                if j in ups or not LIVE(q): continue
+                if last['dinv'] is not None and q['dinv'] is not None and q['dinv']>last['dinv']+2: continue
+                qp,qt=_trace_basic(j)
+                if cyc & set(qp): continue
+                good=qt is not None and qt[0] in ('O','W')
+                c=(0 if good else 1,d,-size(q),j,m)
+                if best is None or c<best: best=c
+        if best:
+            m,j=best[4],best[3]
+            old_t=NX[m]
+            if old_t is not None and old_t[0]=='P' and m in UPL[old_t[1]]: UPL[old_t[1]].remove(m)
+            NX[m]=('P',j); HOW[m]='geom-near'; changed+=1; UPL[j].append(m)
+    BRIDGED+=changed
+    if not changed: break
 def trace(i):
     seen=set();path=[]
     while i is not None and i not in seen:
@@ -149,6 +197,8 @@ for p in P:
             jn,dn=poly_at(WAT,pt,300,True)  # named within 1500 ft
             info['water']=(WAT[j][1] or ('unnamed '+(WAT[j][0] or 'water').lower()), round(d*5)) if j is not None else None
             info['named']=(WAT[jn][1], round(dn*5)) if jn is not None else None
+        if kind==4:
+            lp=P[key[1]]; info['endpre']=str(lp['dn'])[:2] if lp['dn'] else ''
         if key[0]=='O':
             o=O[key[1]]; info.update(outlet=o['id'],otype=o['type'],omat=o['mat'],ms4=o['ms4name'],oremarks=o['remarks'],oinv=o['inv'])
         TERM[key]=info
@@ -205,7 +255,7 @@ for p in P:
 terms=[]
 for k in tkeys:
     v=TERM[k]
-    terms.append([v['kind'],round(v['x']),round(v['y']),color[tidx[k]],v.get('water'),v.get('named'),v.get('outlet'),v.get('otype'),v.get('omat'),v.get('ms4'),v.get('oremarks'),v.get('oinv')])
+    terms.append([v['kind'],round(v['x']),round(v['y']),color[tidx[k]],v.get('water'),v.get('named'),v.get('outlet'),v.get('otype'),v.get('omat'),v.get('ms4'),v.get('oremarks'),v.get('oinv'),v.get('endpre')])
 out={'X0':D['X0'],'Y0':D['Y0'],'unit':5,'names':names,'pipes':recs,'terms':terms,
      'cb':[v for k in range(0,len(D['catchBasins']),2) if D['catchBasins'][k] is not None and D['catchBasins'][k+1] is not None for v in D['catchBasins'][k:k+2]],'dw':D['dryWells'],
      'water':[[w[0] or '',w[1] or '',w[2]] for w in D['water']],'det':[d[2] for d in D['detention']],

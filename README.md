@@ -25,10 +25,10 @@ Storm drains carry untreated rainwater straight to streams and ponds; they are a
 
 | Destination | Pipe segments |
 |---|---|
-| A stream or pond, through an outfall | 14,791 |
-| Dry wells and infiltrators (soaks into the ground) | 269 |
-| Detention basins | 229 |
-| Trace ends at a data gap | 741 |
+| A stream or pond, through an outfall | 15,054 |
+| Dry wells and infiltrators (soaks into the ground) | 265 |
+| Detention basins | 217 |
+| Trace ends at a data gap | 494 |
 
 ## How the trace works
 
@@ -36,6 +36,7 @@ Each pipe in the town's GIS records the structure IDs at its upstream and downst
 
 1. Follow the downstream ID to the pipe that starts there, but only if the two pipes are within 100 ft of each other. Some ID links point to pipes far away and are treated as errors.
 2. If there's no usable ID link, use geometry: the pipe that starts at this pipe's downstream end, or a larger pipe that passes through it (a mid-line tie-in).
+3. Storm map only: if a trace still dead-ends or loops back on itself, bridge to a pipe within 25 ft that continues downhill to an outfall.
 
 Following those links from any pipe reaches a treatment plant, a pipe that leaves town, a storm outfall, a dry well or detention basin, or a dead end. Dead ends are almost always gaps in the data, not real dead ends.
 
