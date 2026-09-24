@@ -3,7 +3,8 @@
 Each storm pipe is linked to the pipe it drains into (the town's downstream ID when it's within
 100 ft, otherwise pipe geometry), then followed to where the water ends up: an outfall into a
 stream or pond, a dry well or infiltrator, a detention basin, or a gap in the data. Outfalls are
-matched to the nearest pond or stream on the town's water-body map. Street names come from the
+matched to the nearest pond on the town's water-body map and to the USGS stream network
+(data/manchester-streams.json), which is then followed downstream to the Connecticut River. Street names come from the
 nearest street centerline (data/manchester-sewer-network.json).
 """
 import json,collections,math,os
@@ -208,6 +209,77 @@ for p in P:
         if PTERM[i] is None: PTERM[i]=key
 
 
+STREAMS_PATH=os.path.join('..','data','manchester-streams.json')
+# ---- link storm terminals to the USGS stream network ----
+SJ=json.load(open(os.path.join(HERE,STREAMS_PATH)))
+assert SJ['X0']==D['X0'] and SJ['Y0']==D['Y0'] and SJ['unit']==D['unit']
+SL=[dict(zip(SJ['fields'],l)) for l in SJ['lines']]
+SBYH={l['hydroseq']:k for k,l in enumerate(SL)}
+SSG=collections.defaultdict(list)
+for k,l in enumerate(SL):
+    for f in l['paths']:
+        pts=[(f[i],f[i+1]) for i in range(0,len(f),2)]
+        cum=0.0; tot=sum(math.dist(a,b) for a,b in zip(pts,pts[1:])) or 1
+        for a,b in zip(pts,pts[1:]):
+            seglen=math.dist(a,b)
+            for c in cellsOf(a,b): SSG[c].append((k,a,b,cum/tot,(cum+seglen)/tot))
+            cum+=seglen
+def _proj(pt,a,b):
+    ax,ay=a;bx,by=b;dx,dy=bx-ax,by-ay;L2=dx*dx+dy*dy
+    t=0 if L2==0 else max(0,min(1,((pt[0]-ax)*dx+(pt[1]-ay)*dy)/L2))
+    q=(ax+t*dx,ay+t*dy); return math.dist(pt,q),q,t
+def stream_candidates(pt,tol):
+    out={};cx,cy=int(pt[0]//CS),int(pt[1]//CS);R=int(tol//CS)+1
+    for gx in range(cx-R,cx+R+1):
+        for gy in range(cy-R,cy+R+1):
+            for k,a,b,f0,f1 in SSG.get((gx,gy),()):
+                d,q,t=_proj(pt,a,b)
+                if d<=tol and (k not in out or d<out[k][0]):
+                    frac=f0+(f1-f0)*t          # 0 at upstream end (NHD lines are digitized downstream)
+                    l=SL[k]; el=None
+                    if l['maxelev_cm'] and l['minelev_cm'] and l['maxelev_cm']>0: el=(l['maxelev_cm']+(l['minelev_cm']-l['maxelev_cm'])*frac)/30.48
+                    out[k]=(d,q,el,frac)
+    return out
+def term_elev(key):
+    v=TERM[key]
+    if v.get('oinv'): return v['oinv']
+    # lowest known invert on any pipe ending at this terminal
+    return None
+LAST_INV={}
+for p in P:
+    k=PTERM[p['i']]
+    path,_=trace(p['i'])
+    lp=P[path[-1]]
+    if lp['dinv']: LAST_INV[k]=lp['dinv']
+STREAM_LINK={}
+for key,v in TERM.items():
+    if v['kind'] not in (0,3): continue
+    pt=(v['x'],v['y'])
+    near_=stream_candidates(pt,50)                   # 250 ft: the outfall is on this stream
+    if near_:
+        pref=list(near_)
+        wn=v.get('water')
+        if wn and wn[1]<=50:                      # outfall is at a named pond/river: prefer the stream line through it
+            polys=[w for w in WAT if w[1] and w[1]==wn[0]]
+            inside=[k for k in near_ if any(pip(near_[k][1],r) or ringdist(near_[k][1],r)<=4 for w in polys for r in w[2])]
+            if inside: pref=inside
+        k=min(pref,key=lambda k:near_[k][0]); d,q,el,fr=near_[k]
+        STREAM_LINK[key]=(k,round(d*5),'direct',q,fr); continue
+    elev=v.get('oinv') or LAST_INV.get(key)
+    far=stream_candidates(pt,500)                    # 2,500 ft: an unmapped stream probably reaches it
+    if elev: far={k:c for k,c in far.items() if c[2] is None or c[2]<=elev+2}
+    if far:
+        k=min(far,key=lambda k:far[k][0]); d,q,el,fr=far[k]
+        STREAM_LINK[key]=(k,round(d*5),'likely',q,fr)
+def stream_chain(k):
+    out=[];seen=set()
+    while k is not None and k not in seen:
+        seen.add(k);out.append(k)
+        if SL[k]['name'] and 'Connecticut River' in SL[k]['name']: break
+        k=SBYH.get(SL[k]['dn'])
+    return out
+
+
 SW=json.load(open(os.path.join(HERE,'..','data','manchester-sewer-network.json')))
 assert SW['X0']==D['X0'] and SW['Y0']==D['Y0'] and SW['unit']==D['unit']
 streets=[[n,[[c for xy in pl for c in xy] for pl in v]] for n,v in SW['streets'].items() if n]
@@ -257,11 +329,14 @@ for p in P:
 terms=[]
 for k in tkeys:
     v=TERM[k]
-    terms.append([v['kind'],round(v['x']),round(v['y']),color[tidx[k]],v.get('water'),v.get('named'),v.get('outlet'),v.get('otype'),v.get('omat'),v.get('ms4'),v.get('oremarks'),v.get('oinv'),v.get('endpre')])
+    sl=STREAM_LINK.get(k)
+    link=[sl[0],sl[1],0 if sl[2]=='direct' else 1,round(sl[3][0],1),round(sl[3][1],1),round(sl[4],3)] if sl else None
+    terms.append([v['kind'],round(v['x']),round(v['y']),color[tidx[k]],v.get('water'),v.get('named'),v.get('outlet'),v.get('otype'),v.get('omat'),v.get('ms4'),v.get('oremarks'),v.get('oinv'),v.get('endpre'),link])
 out={'X0':D['X0'],'Y0':D['Y0'],'unit':5,'names':names,'pipes':recs,'terms':terms,
      'cb':[v for k in range(0,len(D['catchBasins']),2) if D['catchBasins'][k] is not None and D['catchBasins'][k+1] is not None for v in D['catchBasins'][k:k+2]],'dw':D['dryWells'],
      'water':[[w[0] or '',w[1] or '',w[2]] for w in D['water']],'det':[d[2] for d in D['detention']],
-     'streets':streets}
+     'streets':streets,
+     'streams':[[l['name'] or '',l['fcode'],l['lenkm'],l['pathkm'],l['order'] or 1,SBYH.get(l['dn'],-1),l['paths']] for l in SL]}
 page=open(os.path.join(HERE,'storm_template.html')).read().replace('__DATA__',json.dumps(out,separators=(',',':')))
 doc=('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
      '<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}</style>\n</head>\n<body>\n'+page+'\n</body>\n</html>\n')

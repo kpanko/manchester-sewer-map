@@ -5,7 +5,7 @@
 <style>
 :root{
   --ground:#EEF1EE; --surface:#F8FAF8; --ink:#18231F; --muted:#5C6B66; --line:#D5DCD7; --street:#C4CDC8;
-  --m0:#2F6FA3; --m1:#1F8A7A; --m2:#5A7FC0; --m3:#3E9C5A; --m4:#6B5CA5; --m5:#2A93B8; --soak:#A0703A; --det:#8A8F2E; --dx:#9AA39F; --water:#9CC7E6; --waterln:#5E9DCB; --big:#18231F; --feed:#2B3F8C;
+  --m0:#2F6FA3; --m1:#1F8A7A; --m2:#5A7FC0; --m3:#3E9C5A; --m4:#6B5CA5; --m5:#2A93B8; --soak:#A0703A; --det:#8A8F2E; --dx:#9AA39F; --water:#9CC7E6; --waterln:#5E9DCB; --big:#18231F; --feed:#2B3F8C; --stream:#6FA9D6; --flow:#0B6FB8;
   --trace:#C35F1B; --pump:#6B5CA5; --good-bg:#DCEFE6; --good-ink:#0B5A45; --warn-bg:#F7E3D3; --warn-ink:#8A3F0E;
   --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
   --body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
@@ -14,13 +14,13 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --ground:#0F1513; --surface:#151D1A; --ink:#E1E9E5; --muted:#8E9F98; --line:#26322D; --street:#2C3833;
-    --m0:#6FA8DC; --m1:#4CC3AE; --m2:#8FA9E8; --m3:#6CC98A; --m4:#A898E0; --m5:#5CC3E4; --soak:#D09A5E; --det:#BFC45A; --dx:#5F6B66; --water:#1E3E57; --waterln:#3F79A8; --big:#F2F5F3; --feed:#AEB9F5;
+    --m0:#6FA8DC; --m1:#4CC3AE; --m2:#8FA9E8; --m3:#6CC98A; --m4:#A898E0; --m5:#5CC3E4; --soak:#D09A5E; --det:#BFC45A; --dx:#5F6B66; --water:#1E3E57; --waterln:#3F79A8; --big:#F2F5F3; --feed:#AEB9F5; --stream:#3C6F99; --flow:#63B8F2;
     --trace:#F0934A; --pump:#A898E0; --good-bg:#153329; --good-ink:#7DDBBE; --warn-bg:#3A2616; --warn-ink:#F3B27E;
   }
 }
 :root[data-theme="dark"]{
   --ground:#0F1513; --surface:#151D1A; --ink:#E1E9E5; --muted:#8E9F98; --line:#26322D; --street:#2C3833;
-  --m0:#6FA8DC; --m1:#4CC3AE; --m2:#8FA9E8; --m3:#6CC98A; --m4:#A898E0; --m5:#5CC3E4; --soak:#D09A5E; --det:#BFC45A; --dx:#5F6B66; --water:#1E3E57; --waterln:#3F79A8; --big:#F2F5F3; --feed:#AEB9F5;
+  --m0:#6FA8DC; --m1:#4CC3AE; --m2:#8FA9E8; --m3:#6CC98A; --m4:#A898E0; --m5:#5CC3E4; --soak:#D09A5E; --det:#BFC45A; --dx:#5F6B66; --water:#1E3E57; --waterln:#3F79A8; --big:#F2F5F3; --feed:#AEB9F5; --stream:#3C6F99; --flow:#63B8F2;
   --trace:#F0934A; --pump:#A898E0; --good-bg:#153329; --good-ink:#7DDBBE; --warn-bg:#3A2616; --warn-ink:#F3B27E;
 }
 body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
@@ -125,7 +125,7 @@ button.clear{align-self:flex-start;font:inherit;font-size:13px;padding:4px 10px;
     <aside id="panel" aria-live="polite"></aside>
   </div>
 
-  <p class="note">Tap any pipe to follow the water: the route to its outfall is drawn in orange, and the pipes that feed it stay lit. Each color patch is one outfall's drainage area. Pipes 4 ft and larger get a dark outline. Storm drains carry untreated rainwater straight to streams and ponds. Routes follow the town's downstream pipe links, with pipe geometry used where links are missing; the receiving stream or pond is the nearest one on the town's water map, and many small brooks and wetlands aren't mapped. Street names are the nearest street to each pipe. Snapshot of Town of Manchester GIS (<a href="https://gisweb.manchesterct.gov/giswebserver/rest/services/UtilitySystem/Storm/MapServer">UtilitySystem/Storm</a>, <a href="https://gisweb.manchesterct.gov/giswebserver/rest/services/Basemaps/ManchesterBasemap/MapServer">water bodies</a>, <a href="https://gisweb.manchesterct.gov/giswebserver/rest/services/StreetName/MapServer">StreetName</a>), pulled September 23, 2026.</p>
+  <p class="note">Tap any pipe to follow the water: the route to its outfall is drawn in orange, and the pipes that feed it stay lit. Each color patch is one outfall's drainage area. Pipes 4 ft and larger get a dark outline. Storm drains carry untreated rainwater straight to streams and ponds. Routes follow the town's downstream pipe links, with pipe geometry used where links are missing; from each outfall the trace continues down the USGS stream network (NHDPlus HR) to the Connecticut River. Where an outfall feeds a small stream USGS doesn't map, the dotted line shows the nearest mapped stream that sits downhill of it, which is where that water most likely goes. Street names are the nearest street to each pipe. Snapshot of Town of Manchester GIS (<a href="https://gisweb.manchesterct.gov/giswebserver/rest/services/UtilitySystem/Storm/MapServer">UtilitySystem/Storm</a>, <a href="https://gisweb.manchesterct.gov/giswebserver/rest/services/Basemaps/ManchesterBasemap/MapServer">water bodies</a>, <a href="https://gisweb.manchesterct.gov/giswebserver/rest/services/StreetName/MapServer">StreetName</a>), pulled September 23, 2026. Streams: <a href="https://hydro.nationalmap.gov/arcgis/rest/services/NHDPlus_HR/MapServer">USGS NHDPlus HR</a>.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
@@ -143,7 +143,9 @@ const OTYPE={HEADWALL:"headwall",FLARED_END:"flared end",PIPE:"open pipe end",CU
 const N=DATA.names;
 const tc=s=>(s||"").toLowerCase().replace(/\b([a-z])/g,m=>m.toUpperCase()).replace(/\bSt\. /,"St. ");
 const P=DATA.pipes.map(r=>({id:r[0],dia:r[1],h:r[2],w:r[3],shape:r[4],mat:r[5],culv:r[6],ui:r[7],di:r[8],owner:r[9],yr:r[10],status:r[11],rem:r[12],len:r[13],st:r[14],term:r[15],nx:r[16],paths:r[17]}));
-const T=DATA.terms.map(r=>({kind:r[0],x:r[1],y:r[2],color:r[3],water:r[4],named:r[5],outlet:r[6],otype:r[7],omat:r[8],ms4:r[9],orem:r[10],oinv:r[11],endpre:r[12]}));
+const T=DATA.terms.map(r=>({kind:r[0],x:r[1],y:r[2],color:r[3],water:r[4],named:r[5],outlet:r[6],otype:r[7],omat:r[8],ms4:r[9],orem:r[10],oinv:r[11],endpre:r[12],link:r[13]}));
+const SM=DATA.streams.map(r=>({name:r[0],fcode:r[1],km:r[2],pathkm:r[3],order:r[4],dn:r[5],paths:r[6]}));
+const KM=0.621371;
 const ENDS={"80":"a catch basin","84":"a drainage manhole","82":"a drop inlet","91":"an inlet structure","87":"a water quality structure","95":"a structure","96":"a junction chamber","97":"a junction manhole","88":"a pipe end"};
 const UP=P.map(()=>[]);P.forEach((p,i)=>{if(p.nx>=0)UP[p.nx].push(i)});
 const toLL=flat=>{const o=[];for(let k=0;k<flat.length;k+=2)o.push([flat[k+1],flat[k]]);return o};
@@ -153,7 +155,7 @@ const sizeTxt=p=>{const s=SHAPE[p.shape]||"";if(!circ(p)&&p.h>0&&p.w>0&&p.h<=240
 const ftin=inch=>inch>=12?`${Math.floor(inch/12)}′${inch%12?` ${inch%12}″`:""}`:`${inch}″`;
 
 let C={};
-const readColors=()=>{const cs=getComputedStyle(document.documentElement);for(const k of ["m0","m1","m2","m3","m4","m5","soak","det","dx","water","waterln","big","feed","street","trace","ink","surface","muted","line"])C[k]=cs.getPropertyValue("--"+k).trim()};
+const readColors=()=>{const cs=getComputedStyle(document.documentElement);for(const k of ["m0","m1","m2","m3","m4","m5","soak","det","dx","water","waterln","big","feed","stream","flow","street","trace","ink","surface","muted","line"])C[k]=cs.getPropertyValue("--"+k).trim()};
 readColors();
 const colorOf=p=>{const t=T[p.term];if(t.kind===0||t.kind===3)return C["m"+t.color];return t.kind===1?C.soak:t.kind===2?C.det:C.dx};
 
@@ -167,7 +169,7 @@ document.getElementById("facts").innerHTML=[[live.length.toLocaleString(),"storm
 document.getElementById("legend").innerHTML=
   `<span><i style="background:linear-gradient(90deg,var(--m0) 0 25%,var(--m1) 25% 50%,var(--m3) 50% 75%,var(--m4) 75%)"></i>Drains to an outfall (one color per drainage area)</span>`+
   `<span><i style="background:var(--soak)"></i>Soaks into the ground</span><span><i style="background:var(--det)"></i>Detention basin</span><span><i style="background:var(--dx)"></i>Data gap</span>`+
-  `<span><i style="background:var(--trace)"></i>Route from the tapped pipe to where it ends</span><span><i style="background:var(--feed)"></i>Pipes that drain into the tapped pipe</span><span><i style="background:var(--water)"></i>Pond / stream</span>`;
+  `<span><i style="background:var(--trace)"></i>Route from the tapped pipe to where it ends</span><span><i style="background:var(--feed)"></i>Pipes that drain into the tapped pipe</span><span><i style="background:var(--water)"></i>Pond</span><span><i style="background:var(--stream)"></i>Stream (USGS)</span><span><i style="background:var(--flow)"></i>Downstream by stream</span>`;
 
 // ---------- map ----------
 const renderer=L.canvas({padding:.5,tolerance:7});
@@ -175,6 +177,9 @@ const map=L.map("map",{crs:L.CRS.Simple,minZoom:-4,maxZoom:3,zoomSnap:.25,zoomDe
 let bounds=L.latLngBounds([]);P.forEach(p=>p.paths.forEach(f=>bounds.extend(toLL(f))));
 map.fitBounds(bounds.pad(.02));map.setMaxBounds(bounds.pad(.35));
 const waterPolys=DATA.water.map(([t,n,rings])=>L.polygon(rings.map(toLL),{renderer,interactive:!!n,color:C.waterln,weight:.8,fillColor:C.water,fillOpacity:1}).bindTooltip(n?tc(n):"",{sticky:true}).addTo(map));
+let sBounds=L.latLngBounds([]);
+const streamLines=SM.map(s=>{const ll=s.paths.map(toLL);ll.forEach(x=>sBounds.extend(x));return L.polyline(ll,{renderer,interactive:!!s.name,color:C.stream,weight:s.order>=4?2.6:s.order===3?1.8:s.order===2?1.3:1,opacity:.9}).bindTooltip(s.name||"",{sticky:true}).addTo(map)});
+map.setMaxBounds(bounds.extend(sBounds).pad(.1));
 const detPolys=DATA.det.map(rings=>L.polygon(rings.map(toLL),{renderer,interactive:false,color:C.det,weight:.8,fillColor:C.det,fillOpacity:.18,dashArray:"3 3"}).addTo(map));
 const streetLines=DATA.streets.map(([n,paths])=>L.polyline(paths.map(toLL),{renderer,interactive:false,color:C.street,weight:1}).addTo(map));
 const baseW=p=>{const s=size(p);return s>=48?3.6:s>=24?2.2:s>=15?1.5:1.1};
@@ -195,7 +200,8 @@ map.on("click",()=>clearSel());
 let sel=-1,traceSet=new Set(),upSet=new Set(),bigOnly=false;
 const trace=i=>{const s=new Set(),o=[];while(i>=0&&!s.has(i)){s.add(i);o.push(i);i=P[i].nx}return o};
 const upstream=i=>{const s=new Set([i]),st=[i];while(st.length){const j=st.pop();for(const k of UP[j])if(!s.has(k)){s.add(k);st.push(k)}}return s};
-let endMark=null;
+let endMark=null,flowLayer=null;
+const streamChain=k=>{const o=[],s=new Set();while(k>=0&&!s.has(k)){s.add(k);o.push(k);if(SM[k].name.includes("Connecticut River"))break;k=SM[k].dn}return o};
 const styleAll=()=>{
   const z=zf(),any=sel>=0;
   lines.forEach((ln,i)=>{const p=P[i],inT=traceSet.has(i),inU=upSet.has(i),big=size(p)>=48;
@@ -205,6 +211,7 @@ const styleAll=()=>{
   halos.forEach((h,i)=>h.setStyle({color:C.big,weight:(baseW(P[i])+3)*z,opacity:any&&!traceSet.has(i)&&!upSet.has(i)?.2:.85}));
   streetLines.forEach(l=>l.setStyle({color:C.street}));
   waterPolys.forEach(w=>w.setStyle({color:C.waterln,fillColor:C.water}));
+  streamLines.forEach(s=>s.setStyle({color:C.stream}));
   detPolys.forEach(d=>d.setStyle({color:C.det,fillColor:C.det}));
   if(map.getZoom()>=-.5){if(!map.hasLayer(cbLayer))cbLayer.addTo(map)}else if(map.hasLayer(cbLayer))map.removeLayer(cbLayer);
 };
@@ -222,12 +229,28 @@ function idle(){
   <section><h3>Biggest pipes by opening size</h3><ol class="route">${big.map(i=>`<li><span><a href="#" data-pipe="${i}">${esc(P[i].st>=0?tc(N[P[i].st]):"Off-street")}</a></span><em>${esc(sizeTxt(P[i]))}</em></li>`).join("")}</ol></section>`;
   panel.querySelectorAll("a[data-pipe]").forEach(a=>a.onclick=e=>{e.preventDefault();select(+a.dataset.pipe,true)});
 }
-function clearSel(){sel=-1;traceSet=new Set();upSet=new Set();if(endMark){map.removeLayer(endMark);endMark=null}styleAll();idle()}
+function clearSel(){sel=-1;traceSet=new Set();upSet=new Set();if(endMark){map.removeLayer(endMark);endMark=null}if(flowLayer){map.removeLayer(flowLayer);flowLayer=null}styleAll();idle()}
 function select(i,zoom){
   sel=i;const tr=trace(i);traceSet=new Set(tr);upSet=upstream(i);styleAll();
   const p=P[i],t=T[p.term];
   if(endMark)map.removeLayer(endMark);
   endMark=L.circleMarker([t.y,t.x],{renderer,radius:8,color:C.surface,weight:3,fillColor:C.trace,fillOpacity:1}).bindTooltip(t.kind===0?`Outfall${t.water?" → "+tc(t.water[0]):""}`:t.kind===4?"Records stop here":KIND[t.kind].name,{permanent:true,direction:"right",offset:[10,0]}).addTo(map);
+  if(flowLayer){map.removeLayer(flowLayer);flowLayer=null}
+  let chain=[],flowTxt="";
+  if(t.link){const [k0,dft,how,qx,qy,frac]=t.link;chain=streamChain(k0);
+    flowLayer=L.layerGroup().addTo(map);
+    L.polyline([[t.y,t.x],[qy,qx]],{renderer,interactive:false,color:C.flow,weight:3,dashArray:how?"2 6":null,opacity:.95}).addTo(flowLayer);
+    chain.forEach((k,n)=>{let ps=SM[k].paths.map(toLL);if(n===0){ps=ps.map(pl=>{let bi=0,bd=1e18;pl.forEach((p,i)=>{const d=(p[0]-qy)**2+(p[1]-qx)**2;if(d<bd){bd=d;bi=i}});return [[qy,qx],...pl.slice(bi+1)]})}
+      L.polyline(ps,{renderer,interactive:false,color:C.flow,weight:4,opacity:.9}).addTo(flowLayer)});
+    const segs=[];chain.forEach((k,n)=>{const s=SM[k];const nm=s.name||"unnamed stream";const km=n===0?s.km*(1-frac):s.km;const g=segs[segs.length-1];if(g&&g.nm===nm)g.km+=km;else segs.push({nm,km})});
+    const last=SM[chain[chain.length-1]];const toCT=segs.filter(g=>!g.nm.includes("Connecticut River")).reduce((s,g)=>s+g.km,0);
+    const toSound=last.name.includes("Connecticut River")?(last.pathkm+last.km)*KM:null;
+    flowTxt=`<section><h3>Then downstream by stream</h3>
+      <p class="sub">${how?`The outfall feeds a small stream that isn't on the USGS map. It most likely reaches <b>${esc(segs[0].nm)}</b> about ${dft.toLocaleString()} ft away (dotted line).`:(t.water&&t.water[1]<=50&&tc(t.water[0])!==segs[0].nm?`From ${esc(tc(t.water[0]))}, the water continues down <b>${esc(segs[0].nm)}</b>.`:`The outfall is on ${segs[0].nm==="unnamed stream"?"an unnamed stream":"<b>"+esc(segs[0].nm)+"</b>"}.`)}</p>
+      <ol class="route">${segs.map(g=>`<li><span>${esc(g.nm)}</span><em>${g.nm.includes("Connecticut River")?"reached":(g.km*KM).toFixed(1)+" mi"}</em></li>`).join("")}</ol>
+      <p class="sub">About <b>${(toCT*KM).toFixed(1)} miles</b> of stream to the Connecticut River${toSound?`, then about ${Math.round(toSound)} miles down the Connecticut River to Long Island Sound`:""}.</p>
+      <button class="clear" type="button" id="whole">Show the whole trip</button></section>`;
+  }
   const groups=[];for(const j of tr){const q=P[j];const name=q.st>=0?tc(N[q.st]):"Off-street (yard or easement)";const g=groups[groups.length-1];
     if(g&&g.name===name){g.len+=q.len;g.max=Math.max(g.max,size(q))}else groups.push({name,len:q.len,max:size(q)})}
   const total=tr.reduce((s,j)=>s+P[j].len,0);
@@ -271,8 +294,9 @@ function select(i,zoom){
     <ol class="route">${groups.map(g=>`<li><span>${esc(g.name)}</span><em>up to ${g.max}″ · ${ft(g.len)}</em></li>`).join("")}</ol>
     <p class="sub">Largest pipe on the way: ${esc(sizeTxt(P[biggest]))}.</p>
     <button class="clear" type="button" id="clr">Clear selection</button>
-  </section>`;
+  </section>${flowTxt}`;
   document.getElementById("clr").onclick=clearSel;
+  const wb=document.getElementById("whole");if(wb)wb.onclick=()=>{const b=L.latLngBounds([[t.y,t.x]]);chain.forEach(k=>SM[k].paths.forEach(f=>b.extend(toLL(f))));map.fitBounds(b.pad(.1))};
   drawProfile(tr,total>=5280);
   if(zoom){const b=L.latLngBounds([]);tr.forEach(j=>P[j].paths.forEach(f=>b.extend(toLL(f))));b.extend([t.y,t.x]);map.fitBounds(b.pad(.3),{maxZoom:0.5})}
 }
