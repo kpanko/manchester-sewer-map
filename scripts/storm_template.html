@@ -1,0 +1,307 @@
+<title>Manchester Storm Drain Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#EEF1EE; --surface:#F8FAF8; --ink:#18231F; --muted:#5C6B66; --line:#D5DCD7; --street:#C4CDC8;
+  --m0:#2F6FA3; --m1:#1F8A7A; --m2:#5A7FC0; --m3:#3E9C5A; --m4:#6B5CA5; --m5:#2A93B8; --soak:#A0703A; --det:#8A8F2E; --dx:#9AA39F; --water:#9CC7E6; --waterln:#5E9DCB; --big:#18231F;
+  --trace:#C35F1B; --pump:#6B5CA5; --good-bg:#DCEFE6; --good-ink:#0B5A45; --warn-bg:#F7E3D3; --warn-ink:#8A3F0E;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1513; --surface:#151D1A; --ink:#E1E9E5; --muted:#8E9F98; --line:#26322D; --street:#2C3833;
+    --m0:#6FA8DC; --m1:#4CC3AE; --m2:#8FA9E8; --m3:#6CC98A; --m4:#A898E0; --m5:#5CC3E4; --soak:#D09A5E; --det:#BFC45A; --dx:#5F6B66; --water:#1E3E57; --waterln:#3F79A8; --big:#F2F5F3;
+    --trace:#F0934A; --pump:#A898E0; --good-bg:#153329; --good-ink:#7DDBBE; --warn-bg:#3A2616; --warn-ink:#F3B27E;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1513; --surface:#151D1A; --ink:#E1E9E5; --muted:#8E9F98; --line:#26322D; --street:#2C3833;
+  --m0:#6FA8DC; --m1:#4CC3AE; --m2:#8FA9E8; --m3:#6CC98A; --m4:#A898E0; --m5:#5CC3E4; --soak:#D09A5E; --det:#BFC45A; --dx:#5F6B66; --water:#1E3E57; --waterln:#3F79A8; --big:#F2F5F3;
+  --trace:#F0934A; --pump:#A898E0; --good-bg:#153329; --good-ink:#7DDBBE; --warn-bg:#3A2616; --warn-ink:#F3B27E;
+}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1400px;margin:0 auto;padding-inline:16px;padding-block:22px 40px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;gap:12px 32px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-family:var(--display);font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-size:14px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.2vw,44px);line-height:1;margin:2px 0 0}
+.facts{display:flex;flex-wrap:wrap;gap:8px 26px}
+.fact{display:flex;flex-direction:column}
+.fact b{font-family:var(--mono);font-weight:500;font-size:20px;font-variant-numeric:tabular-nums}
+.fact span{font-size:12.5px;color:var(--muted)}
+.tools{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.search{display:flex;gap:8px;align-items:center;flex:1 1 260px;max-width:420px}
+.search label{font-family:var(--display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:13px;color:var(--muted);white-space:nowrap}
+.search input{flex:1;min-width:0;font:inherit;font-size:15px;padding:7px 10px;border:1px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink)}
+.search input:focus-visible,button:focus-visible{outline:2px solid var(--m0);outline-offset:1px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:20px;height:4px;border-radius:2px}
+.legend i.ring{width:11px;height:11px;border-radius:50%;border:2.5px solid var(--pump);box-sizing:border-box}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;align-items:start}
+#map{height:min(78vh,820px);min-height:420px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+aside{background:var(--surface);border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;max-height:min(78vh,820px);overflow:auto}
+aside section{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+aside section:last-child{border-bottom:0}
+aside h2{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.05;margin:0;text-wrap:balance}
+aside h3{font-family:var(--display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:13px;color:var(--muted);margin:0}
+.sub{color:var(--muted);font-size:14px;margin:0}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{display:inline-flex;align-items:center;gap:7px;font-family:var(--display);font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:14px;padding:4px 11px;border-radius:999px;background:var(--good-bg);color:var(--good-ink)}
+.pill.warn{background:var(--warn-bg);color:var(--warn-ink)}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+dl.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;margin:0;font-size:14px}
+dl.kv dt{color:var(--muted)}
+dl.kv dd{margin:0;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stats div{display:flex;flex-direction:column}
+.stats b{font-family:var(--mono);font-weight:500;font-size:18px;font-variant-numeric:tabular-nums}
+.stats span{font-size:12px;color:var(--muted);line-height:1.25}
+ol.route{list-style:none;margin:0;padding:0;font-size:14px;display:flex;flex-direction:column}
+ol.route li{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px dotted var(--line)}
+ol.route li:last-child{border-bottom:0}
+ol.route li em{font-style:normal;font-family:var(--mono);font-size:12.5px;color:var(--muted);white-space:nowrap}
+ol.route li.pump{color:var(--warn-ink);font-weight:600}
+#prof{width:100%;height:auto;display:block}
+button.clear{align-self:flex-start;font:inherit;font-size:13px;padding:4px 10px;border:1px solid var(--line);border-radius:5px;background:transparent;color:var(--muted);cursor:pointer}
+.note{font-size:13px;color:var(--muted);margin:0;max-width:95ch}
+.note a{color:var(--m0)}
+@media (max-width: 900px){
+  .stage{grid-template-columns:1fr}
+  #map{height:62vh}
+  aside{max-height:none}
+}
+/* ---- Leaflet essentials (inlined) ---- */
+.leaflet-pane,.leaflet-map-pane canvas,.leaflet-map-pane svg,.leaflet-zoom-box{position:absolute;left:0;top:0}
+.tog{display:inline-flex;align-items:center;gap:7px;font-size:14px;color:var(--ink);cursor:pointer;user-select:none}.tog input{width:16px;height:16px;accent-color:var(--m0)}
+.nav{display:flex;gap:6px;margin-top:10px;font-size:14px}.nav a,.nav span{padding:4px 11px;border-radius:999px;border:1px solid var(--line);text-decoration:none;color:var(--ink)}.nav span{background:var(--ink);color:var(--surface);border-color:var(--ink)}.nav a:hover{background:var(--surface)}
+.leaflet-container{overflow:hidden;-webkit-tap-highlight-color:transparent;touch-action:none;font-family:var(--body);outline-offset:1px}
+.leaflet-container a{color:var(--ink)}
+.leaflet-pane{z-index:400}.leaflet-overlay-pane{z-index:400}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}
+.leaflet-map-pane canvas{z-index:100}.leaflet-map-pane svg{z-index:200}
+.leaflet-control{position:relative;z-index:800;pointer-events:auto;float:left;clear:both}
+.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}
+.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}
+.leaflet-right .leaflet-control{float:right;margin-right:10px}.leaflet-left .leaflet-control{margin-left:10px}
+.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}
+.leaflet-zoom-animated{transform-origin:0 0}
+.leaflet-zoom-anim .leaflet-zoom-animated{transition:transform .25s cubic-bezier(0,0,.25,1)}
+.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}
+.leaflet-interactive{cursor:pointer}
+.leaflet-grab{cursor:grab}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-interactive{cursor:grabbing}
+.leaflet-bar{border:1px solid var(--line);border-radius:5px;overflow:hidden;background:var(--surface)}
+.leaflet-bar a{display:block;width:32px;height:32px;line-height:30px;text-align:center;text-decoration:none;font-size:20px;color:var(--ink);background:var(--surface)}
+.leaflet-bar a+a{border-top:1px solid var(--line)}
+.leaflet-bar a:hover{background:var(--ground)}
+.leaflet-tooltip{position:absolute;padding:3px 8px;background:var(--ink);color:var(--surface);border-radius:4px;white-space:nowrap;pointer-events:none;font-size:13px;font-family:var(--body)}
+.leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{display:none}
+@media (prefers-reduced-motion: reduce){.leaflet-zoom-anim .leaflet-zoom-animated{transition:none}}
+</style>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Manchester, CT · Storm drain system</div>
+      <h1>Manchester Storm Drain Map</h1>
+      <nav class="nav" aria-label="Maps"><span aria-current="page">Storm drain map</span><a href="./">Sewer map</a></nav>
+    </div>
+    <div class="facts" id="facts"></div>
+  </header>
+
+  <div class="tools">
+    <div class="search">
+      <label for="q">Find a street</label>
+      <input id="q" list="streets" placeholder="e.g. Main St" autocomplete="off">
+      <datalist id="streets"></datalist>
+    </div>
+    <label class="tog" for="bigonly"><input type="checkbox" id="bigonly">Only pipes 4 ft or larger</label>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="stage">
+    <div id="map" aria-label="Map of Manchester's storm drain pipes. Tap a pipe to see where its water goes."></div>
+    <aside id="panel" aria-live="polite"></aside>
+  </div>
+
+  <p class="note">Tap any pipe to follow the water: the route to its outfall is drawn in orange, and the pipes that feed it stay lit. Each color patch is one outfall's drainage area. Pipes 4 ft and larger get a dark outline. Storm drains carry untreated rainwater straight to streams and ponds. Routes follow the town's downstream pipe links, with pipe geometry used where links are missing; the receiving stream or pond is the nearest one on the town's water map, and many small brooks and wetlands aren't mapped. Street names are the nearest street to each pipe. Snapshot of Town of Manchester GIS (<a href="https://gisweb.manchesterct.gov/giswebserver/rest/services/UtilitySystem/Storm/MapServer">UtilitySystem/Storm</a>, <a href="https://gisweb.manchesterct.gov/giswebserver/rest/services/Basemaps/ManchesterBasemap/MapServer">water bodies</a>, <a href="https://gisweb.manchesterct.gov/giswebserver/rest/services/StreetName/MapServer">StreetName</a>), pulled September 23, 2026.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+const DATA=__DATA__;
+const KIND=[
+  {name:"Outfall",short:"outfall"},
+  {name:"Soaks into the ground",short:"dry well or infiltrator"},
+  {name:"Detention basin",short:"detention basin"},
+  {name:"Pond or stream",short:"pond or stream"},
+  {name:"Trace ends (data gap)",short:"gap in the town data"}];
+const MAT={RCP:"reinforced concrete",PLASTIC:"plastic",VCP:"vitrified clay",PVC:"PVC",CPEP:"corrugated plastic",ACCMP:"asphalt-coated corrugated metal",CMP:"corrugated metal",DIP:"ductile iron",CIP:"cast iron",CONC:"concrete",STONE:"stone",CAP:"corrugated aluminum",SRCP:"steel-reinforced concrete",BITUM:"bituminous",CLIP:"cement-lined iron",UNK:"unknown material"};
+const SHAPE={CIRC:"round",RECT:"box",ARCH:"arch",ELLIPT:"elliptical"};
+const OTYPE={HEADWALL:"headwall",FLARED_END:"flared end",PIPE:"open pipe end",CULVERT_END:"culvert end",OTHER:"other structure"};
+const N=DATA.names;
+const tc=s=>(s||"").toLowerCase().replace(/\b([a-z])/g,m=>m.toUpperCase()).replace(/\bSt\. /,"St. ");
+const P=DATA.pipes.map(r=>({id:r[0],dia:r[1],h:r[2],w:r[3],shape:r[4],mat:r[5],culv:r[6],ui:r[7],di:r[8],owner:r[9],yr:r[10],status:r[11],rem:r[12],len:r[13],st:r[14],term:r[15],nx:r[16],paths:r[17]}));
+const T=DATA.terms.map(r=>({kind:r[0],x:r[1],y:r[2],color:r[3],water:r[4],named:r[5],outlet:r[6],otype:r[7],omat:r[8],ms4:r[9],orem:r[10],oinv:r[11]}));
+const UP=P.map(()=>[]);P.forEach((p,i)=>{if(p.nx>=0)UP[p.nx].push(i)});
+const toLL=flat=>{const o=[];for(let k=0;k<flat.length;k+=2)o.push([flat[k+1],flat[k]]);return o};
+const circ=p=>p.shape==="CIRC"||!p.shape||p.shape==="UNK";
+const size=p=>circ(p)?(p.dia||(p.h>0&&p.h<=144?p.h:0)):Math.max(p.h>0&&p.h<=240?p.h:0,p.w>0&&p.w<=240?p.w:0);
+const sizeTxt=p=>{const s=SHAPE[p.shape]||"";if(!circ(p)&&p.h>0&&p.w>0&&p.h<=240&&p.w<=240){let w=p.w,h=p.h;if(p.shape!=="RECT"&&h>w)[w,h]=[h,w];return `${ftin(w)} wide × ${ftin(h)} tall ${s}`}const d=size(p);return d?`${d}″${s&&!circ(p)?" "+s:""}`:"size not recorded"};
+const ftin=inch=>inch>=12?`${Math.floor(inch/12)}′${inch%12?` ${inch%12}″`:""}`:`${inch}″`;
+
+let C={};
+const readColors=()=>{const cs=getComputedStyle(document.documentElement);for(const k of ["m0","m1","m2","m3","m4","m5","soak","det","dx","water","waterln","big","street","trace","ink","surface","muted","line"])C[k]=cs.getPropertyValue("--"+k).trim()};
+readColors();
+const colorOf=p=>{const t=T[p.term];if(t.kind===0||t.kind===3)return C["m"+t.color];return t.kind===1?C.soak:t.kind===2?C.det:C.dx};
+
+// ---------- facts + legend ----------
+const live=P.filter(p=>p.status!=="P");
+const miles=live.reduce((s,p)=>s+p.len,0)/5280;
+const toOut=Math.round(P.filter(p=>T[p.term].kind===0||T[p.term].kind===3).length/P.length*100);
+const nBig=live.filter(p=>size(p)>=48).length;
+document.getElementById("facts").innerHTML=[[live.length.toLocaleString(),"storm pipes"],[miles.toFixed(0),"miles of pipe"],[T.filter(t=>t.kind===0).length.toLocaleString(),"outfalls"],[(DATA.cb.length/2).toLocaleString(),"catch basins"],[nBig,"pipes 4 ft+"]]
+  .map(([b,s])=>`<div class="fact"><b>${b}</b><span>${s}</span></div>`).join("");
+document.getElementById("legend").innerHTML=
+  `<span><i style="background:linear-gradient(90deg,var(--m0) 0 25%,var(--m1) 25% 50%,var(--m3) 50% 75%,var(--m4) 75%)"></i>Drains to an outfall (one color per drainage area)</span>`+
+  `<span><i style="background:var(--soak)"></i>Soaks into the ground</span><span><i style="background:var(--det)"></i>Detention basin</span><span><i style="background:var(--dx)"></i>Data gap</span>`+
+  `<span><i style="background:var(--trace)"></i>Traced route</span><span><i style="background:var(--water)"></i>Pond / stream</span>`;
+
+// ---------- map ----------
+const renderer=L.canvas({padding:.5,tolerance:7});
+const map=L.map("map",{crs:L.CRS.Simple,minZoom:-4,maxZoom:3,zoomSnap:.25,zoomDelta:.5,wheelPxPerZoomLevel:90,attributionControl:false,preferCanvas:true,renderer});
+let bounds=L.latLngBounds([]);P.forEach(p=>p.paths.forEach(f=>bounds.extend(toLL(f))));
+map.fitBounds(bounds.pad(.02));map.setMaxBounds(bounds.pad(.35));
+const waterPolys=DATA.water.map(([t,n,rings])=>L.polygon(rings.map(toLL),{renderer,interactive:!!n,color:C.waterln,weight:.8,fillColor:C.water,fillOpacity:1}).bindTooltip(n?tc(n):"",{sticky:true}).addTo(map));
+const detPolys=DATA.det.map(rings=>L.polygon(rings.map(toLL),{renderer,interactive:false,color:C.det,weight:.8,fillColor:C.det,fillOpacity:.18,dashArray:"3 3"}).addTo(map));
+const streetLines=DATA.streets.map(([n,paths])=>L.polyline(paths.map(toLL),{renderer,interactive:false,color:C.street,weight:1}).addTo(map));
+const baseW=p=>{const s=size(p);return s>=48?3.6:s>=24?2.2:s>=15?1.5:1.1};
+const zf=()=>Math.max(.55,Math.min(2.8,Math.pow(1.45,map.getZoom()+1.5)));
+const bigIdx=P.map((p,i)=>i).filter(i=>size(P[i])>=48&&P[i].status!=="P");
+const halos=new Map(bigIdx.map(i=>[i,L.polyline(P[i].paths.map(toLL),{renderer,interactive:false,color:C.big,weight:6,opacity:.85,lineCap:"round"}).addTo(map)]));
+const lines=P.map((p,i)=>{const ln=L.polyline(p.paths.map(toLL),{renderer,color:colorOf(p),weight:baseW(p),opacity:.95,dashArray:p.status==="P"?"4 4":null,lineCap:"round"});
+  ln.on("click",e=>{L.DomEvent.stopPropagation(e);select(i)});
+  ln.bindTooltip(()=>`${p.st>=0?tc(N[p.st]):"Off-street"} · ${sizeTxt(p)}`,{sticky:true,direction:"top",offset:[0,-6]});
+  ln.addTo(map);return ln});
+// catch basins at close zoom
+const cbLayer=L.layerGroup();for(let k=0;k<DATA.cb.length;k+=2)L.circleMarker([DATA.cb[k+1],DATA.cb[k]],{renderer,radius:1.8,weight:0,fillColor:C.muted,fillOpacity:.9,interactive:false}).addTo(cbLayer);
+const outLayer=L.layerGroup().addTo(map);
+T.forEach((t,k)=>{if(t.kind!==0)return;L.circleMarker([t.y,t.x],{renderer,radius:2.6,weight:1.2,color:C.surface,fillColor:C["m"+t.color],fillOpacity:1}).bindTooltip(`Outfall${t.water?" → "+tc(t.water[0]):""}`,{direction:"top"}).addTo(outLayer)});
+map.on("click",()=>clearSel());
+
+// ---------- selection ----------
+let sel=-1,traceSet=new Set(),upSet=new Set(),bigOnly=false;
+const trace=i=>{const s=new Set(),o=[];while(i>=0&&!s.has(i)){s.add(i);o.push(i);i=P[i].nx}return o};
+const upstream=i=>{const s=new Set([i]),st=[i];while(st.length){const j=st.pop();for(const k of UP[j])if(!s.has(k)){s.add(k);st.push(k)}}return s};
+let endMark=null;
+const styleAll=()=>{
+  const z=zf(),any=sel>=0;
+  lines.forEach((ln,i)=>{const p=P[i],inT=traceSet.has(i),inU=upSet.has(i),big=size(p)>=48;
+    const hide=bigOnly&&!big&&!inT;
+    ln.setStyle({color:inT?C.trace:colorOf(p),weight:(inT?baseW(p)+2.2:baseW(p))*z,opacity:hide?0:(!any||inT||inU?.95:.25)});
+    if(inT)ln.bringToFront()});
+  halos.forEach((h,i)=>h.setStyle({color:C.big,weight:(baseW(P[i])+3)*z,opacity:any&&!traceSet.has(i)&&!upSet.has(i)?.2:.85}));
+  streetLines.forEach(l=>l.setStyle({color:C.street}));
+  waterPolys.forEach(w=>w.setStyle({color:C.waterln,fillColor:C.water}));
+  detPolys.forEach(d=>d.setStyle({color:C.det,fillColor:C.det}));
+  if(map.getZoom()>=-.5){if(!map.hasLayer(cbLayer))cbLayer.addTo(map)}else if(map.hasLayer(cbLayer))map.removeLayer(cbLayer);
+};
+map.on("zoomend",styleAll);
+
+const panel=document.getElementById("panel");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ft=n=>Math.round(n).toLocaleString()+" ft";
+const cnt=[0,0,0,0,0];P.forEach(p=>cnt[T[p.term].kind]++);
+function idle(){
+  const big=[],seenB=new Set();const area=p=>{if(circ(p)){const d=size(p);return Math.PI*d*d/4}const h=p.h>0&&p.h<=240?p.h:0,w=p.w>0&&p.w<=240?p.w:0;return (p.shape==="RECT"?1:.8)*h*w};
+  for(const i of [...bigIdx].sort((a,b)=>area(P[b])-area(P[a]))){const k=P[i].st;if(seenB.has(k))continue;seenB.add(k);big.push(i);if(big.length===8)break}
+  panel.innerHTML=`<section><h2>Tap any pipe</h2><p class="sub">See how big it is, which way the water goes, where it comes out, and which stream or pond it reaches.</p></section>
+  <section><h3>Where Manchester's rainwater goes</h3><dl class="kv">${[["Stream or pond, via an outfall",cnt[0]+cnt[3]],[KIND[1].name,cnt[1]],[KIND[2].name,cnt[2]],[KIND[4].name,cnt[4]]].map(([n,c])=>`<dt>${n}</dt><dd>${c.toLocaleString()} pipes</dd>`).join("")}</dl></section>
+  <section><h3>Biggest pipes by opening size</h3><ol class="route">${big.map(i=>`<li><span><a href="#" data-pipe="${i}">${esc(P[i].st>=0?tc(N[P[i].st]):"Off-street")}</a></span><em>${esc(sizeTxt(P[i]))}</em></li>`).join("")}</ol></section>`;
+  panel.querySelectorAll("a[data-pipe]").forEach(a=>a.onclick=e=>{e.preventDefault();select(+a.dataset.pipe,true)});
+}
+function clearSel(){sel=-1;traceSet=new Set();upSet=new Set();if(endMark){map.removeLayer(endMark);endMark=null}styleAll();idle()}
+function select(i,zoom){
+  sel=i;const tr=trace(i);traceSet=new Set(tr);upSet=upstream(i);styleAll();
+  const p=P[i],t=T[p.term];
+  if(endMark)map.removeLayer(endMark);
+  endMark=L.circleMarker([t.y,t.x],{renderer,radius:8,color:C.surface,weight:3,fillColor:C.trace,fillOpacity:1}).addTo(map);
+  const groups=[];for(const j of tr){const q=P[j];const name=q.st>=0?tc(N[q.st]):"Off-street (yard or easement)";const g=groups[groups.length-1];
+    if(g&&g.name===name){g.len+=q.len;g.max=Math.max(g.max,size(q))}else groups.push({name,len:q.len,max:size(q)})}
+  const total=tr.reduce((s,j)=>s+P[j].len,0);
+  const invs=tr.flatMap(j=>[P[j].ui,P[j].di]).filter(v=>v!=null);
+  const fall=invs.length>1?invs[0]-invs[invs.length-1]:null;
+  const biggest=tr.reduce((m,j)=>size(P[j])>size(P[m])?j:m,tr[0]);
+  const slope=p.ui!=null&&p.di!=null&&p.len?((p.ui-p.di)/p.len*100):null;
+  let where="";
+  if(t.kind===0||t.kind===3){
+    where=t.water?`Comes out ${t.kind===0&&t.otype&&OTYPE[t.otype]?"at a "+OTYPE[t.otype]+" ":""}into <b>${esc(tc(t.water[0]))}</b>${t.water[1]>20?` (${t.water[1]} ft away)`:""}.`
+      :`Comes out ${t.otype&&OTYPE[t.otype]?"at a "+OTYPE[t.otype]+" ":""}into a stream or wetland that isn't on the town's water map${t.named?`; the nearest named water is ${esc(tc(t.named[0]))}, ${t.named[1].toLocaleString()} ft away`:""}.`;
+  } else if(t.kind===1) where="Ends in a dry well or infiltrator, where the water soaks into the ground instead of reaching a stream.";
+  else if(t.kind===2) where="Ends in a detention basin, which holds stormwater and releases it slowly.";
+  else where="The town's data doesn't show where this route goes next.";
+  panel.innerHTML=`
+  <section>
+    <h3>Selected pipe</h3>
+    <h2>${esc(p.st>=0?tc(N[p.st]):"Off-street pipe")}</h2>
+    <div class="pills"><span class="pill${t.kind===4?" warn":""}">${esc(KIND[t.kind].name)}</span>${size(p)>=48?`<span class="pill">${ftin(size(p))} across</span>`:""}</div>
+    <dl class="kv">
+      <dt>Pipe</dt><dd>${esc(sizeTxt(p))} ${esc(MAT[p.mat]||p.mat||"")}${p.culv==="YES"?" · culvert":""}</dd>
+      <dt>Length</dt><dd>${ft(p.len)}</dd>
+      <dt>Invert in → out</dt><dd>${p.ui!=null&&p.di!=null?p.ui.toFixed(1)+" → "+p.di.toFixed(1)+" ft":"not recorded"}</dd>
+      <dt>Slope</dt><dd>${slope!=null?slope.toFixed(2)+"%":"–"}</dd>
+      <dt>Installed</dt><dd>${p.yr||"unknown"}</dd>
+      <dt>Owner</dt><dd>${esc(tc(p.owner)||"n/a")}</dd>
+      <dt>Town ID</dt><dd>${p.id}${p.status==="P"?" (proposed)":""}</dd>
+      ${p.rem?`<dt>Note</dt><dd>${esc(p.rem)}</dd>`:""}
+    </dl>
+  </section>
+  <section>
+    <h3>Where the water goes</h3>
+    <p class="sub">${where}</p>
+    <div class="stats">
+      <div><b>${total>=5280?(total/5280).toFixed(2):Math.round(total).toLocaleString()}</b><span>${total>=5280?"miles":"feet"} to the end</span></div>
+      <div><b>${fall!=null?Math.round(fall):"–"}</b><span>ft of fall</span></div>
+      <div><b>${(upSet.size-1).toLocaleString()}</b><span>${upSet.size===2?"pipe feeds":"pipes feed"} into this one</span></div>
+    </div>
+    ${t.kind===0&&(t.ms4||t.orem)?`<dl class="kv"><dt>Outfall</dt><dd>${esc([t.ms4,t.orem].filter(Boolean).join(" · "))}</dd></dl>`:""}
+    <h3>Profile: invert elevation (ft) vs. ${total>=5280?"miles":"feet"}</h3><svg id="prof" viewBox="0 0 340 130" role="img" aria-label="Elevation profile of the downstream route"></svg>
+    <ol class="route">${groups.map(g=>`<li><span>${esc(g.name)}</span><em>up to ${g.max}″ · ${ft(g.len)}</em></li>`).join("")}</ol>
+    <p class="sub">Largest pipe on the way: ${esc(sizeTxt(P[biggest]))}.</p>
+    <button class="clear" type="button" id="clr">Clear selection</button>
+  </section>`;
+  document.getElementById("clr").onclick=clearSel;
+  drawProfile(tr,total>=5280);
+  if(zoom){const b=L.latLngBounds([]);tr.forEach(j=>P[j].paths.forEach(f=>b.extend(toLL(f))));b.extend([t.y,t.x]);map.fitBounds(b.pad(.3),{maxZoom:0.5})}
+}
+function drawProfile(tr,miles){
+  const svg=document.getElementById("prof");const W=340,H=130,l=34,r=8,tp=8,b=22;
+  let x=0;const pts=[];for(const j of tr){const q=P[j];if(q.ui!=null)pts.push([x,q.ui]);x+=q.len;if(q.di!=null)pts.push([x,q.di])}
+  if(pts.length<2){svg.outerHTML=`<p class="sub">No elevation data on this route.</p>`;return}
+  const tot=x||1,ys=pts.map(p=>p[1]);const span=Math.max(...ys)-Math.min(...ys);const st=span>150?50:span>40?20:10;
+  let lo=Math.floor(Math.min(...ys)/st)*st,hi=Math.ceil(Math.max(...ys)/st)*st;if(hi===lo)hi+=st;
+  const px=v=>l+v/tot*(W-l-r),py=v=>tp+(hi-v)/(hi-lo)*(H-tp-b);
+  let s="";for(let e=lo;e<=hi;e+=st)s+=`<line x1="${l}" x2="${W-r}" y1="${py(e)}" y2="${py(e)}" stroke="${C.line}"/><text x="${l-5}" y="${py(e)+4}" text-anchor="end" font-size="10" fill="${C.muted}" font-family="IBM Plex Mono,monospace">${e}</text>`;
+  const U=miles?5280:1,um=tot/U;const ms=miles?(um>2?1:um>.8?.5:.25):(um>2000?1000:um>800?250:um>300?100:50);
+  for(let m=0;m<=um+1e-9;m+=ms)s+=`<text x="${px(m*U)}" y="${H-6}" text-anchor="middle" font-size="10" fill="${C.muted}" font-family="IBM Plex Mono,monospace">${+m.toFixed(2)}</text>`;
+  const d=pts.map((p,k)=>(k?"L":"M")+px(p[0]).toFixed(1)+" "+py(p[1]).toFixed(1)).join("");
+  s+=`<path d="${d}L${px(tot)} ${H-b}L${px(0)} ${H-b}Z" fill="${C.trace}" opacity=".13"/><path d="${d}" fill="none" stroke="${C.trace}" stroke-width="2" stroke-linejoin="round"/>`;
+  svg.innerHTML=s;
+}
+
+// ---------- search ----------
+const byStreet=new Map();P.forEach((p,i)=>{if(p.st<0)return;const n=tc(N[p.st]);if(!byStreet.has(n))byStreet.set(n,[]);byStreet.get(n).push(i)});
+document.getElementById("streets").innerHTML=[...byStreet.keys()].sort().map(n=>`<option value="${esc(n)}">`).join("");
+const q=document.getElementById("q");
+const go=()=>{const v=q.value.trim().toLowerCase();const key=[...byStreet.keys()].find(n=>n.toLowerCase()===v)||[...byStreet.keys()].find(n=>n.toLowerCase().startsWith(v));
+  if(!v||!key)return;const idx=byStreet.get(key);let best=idx[0],bl=-1;for(const i of idx){const l=trace(i).length;if(l>bl){bl=l;best=i}}
+  const b=L.latLngBounds([]);idx.forEach(i=>P[i].paths.forEach(f=>b.extend(toLL(f))));select(best,false);map.fitBounds(b.pad(.6),{maxZoom:1})};
+q.addEventListener("change",go);q.addEventListener("keydown",e=>{if(e.key==="Enter")go()});
+document.getElementById("bigonly").addEventListener("change",e=>{bigOnly=e.target.checked;styleAll()});
+
+const retheme=()=>{readColors();styleAll();if(sel>=0)select(sel,false)};
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",retheme);
+new MutationObserver(retheme).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+idle();styleAll();
+</script>

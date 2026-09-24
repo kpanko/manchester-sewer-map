@@ -76,6 +76,7 @@ button.clear{align-self:flex-start;font:inherit;font-size:13px;padding:4px 10px;
 }
 /* ---- Leaflet essentials (inlined) ---- */
 .leaflet-pane,.leaflet-map-pane canvas,.leaflet-map-pane svg,.leaflet-zoom-box{position:absolute;left:0;top:0}
+.nav{display:flex;gap:6px;margin-top:10px;font-size:14px}.nav a,.nav span{padding:4px 11px;border-radius:999px;border:1px solid var(--line);text-decoration:none;color:var(--ink)}.nav span{background:var(--ink);color:var(--surface);border-color:var(--ink)}.nav a:hover{background:var(--surface)}
 .leaflet-container{overflow:hidden;-webkit-tap-highlight-color:transparent;touch-action:none;font-family:var(--body);outline-offset:1px}
 .leaflet-container a{color:var(--ink)}
 .leaflet-pane{z-index:400}.leaflet-overlay-pane{z-index:400}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}
@@ -104,6 +105,7 @@ button.clear{align-self:flex-start;font:inherit;font-size:13px;padding:4px 10px;
     <div>
       <div class="eyebrow">Manchester, CT · Sanitary sewer system</div>
       <h1>Manchester Sewer Map</h1>
+      <nav class="nav" aria-label="Maps"><span aria-current="page">Sewer map</span><a href="storm.html">Storm drain map</a></nav>
     </div>
     <div class="facts" id="facts"></div>
   </header>
