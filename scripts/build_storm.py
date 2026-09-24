@@ -11,7 +11,7 @@ HERE=os.path.dirname(os.path.abspath(__file__))
 D=json.load(open(os.path.join(HERE,'..','data','manchester-storm-network.json')))
 F=D['pipeFields'];P=[dict(zip(F,p)) for p in D['pipes']]
 OF=D['outletFields'];O=[dict(zip(OF,o)) for o in D['outlets']]
-Oid={o['id']:k for k,o in enumerate(O)}
+Oid={o['id']:k for k,o in enumerate(O) if o['id'] is not None}
 for i,p in enumerate(P):
     p['i']=i; p['pts']=[(pl[k],pl[k+1]) for pl in p['paths'] for k in range(0,len(pl),2)]
     p['s']=p['pts'][0]; p['e']=p['pts'][-1]
@@ -70,14 +70,16 @@ def nxt(p):
         if cl: return ('P',max(cl,key=lambda q:(size(q),-(q['uinv'] or 1e9)))['i']),'id'
     TOL=3
     nb=near(p['e'],TOL); nb.pop(p['i'],None)
-    c=[P[i] for i in nb if math.dist(P[i]['s'],p['e'])<=TOL and LIVE(P[i])]
-    c=[q for q in c if not (q['dn'] is not None and q['dn']==p['up']) and math.dist(q['e'],p['s'])>TOL]
+    c=[P[i] for i in nb if math.dist(P[i]['s'],p['e'])<=TOL and P[i]['status']!='ABANDONED']
+    c=[q for q in c if not (q['dn'] is not None and p['up'] is not None and q['dn']==p['up']) and math.dist(q['e'],p['s'])>TOL]
+    c=[q for q in c if LIVE(q)] or c
     if c: return ('P',max(c,key=size)['i']),'geom-start'
     k=nearest(OG,OP,p['e'],6)
     if k is not None: return ('O',k),'geom-outlet'
     k=nearest(DG,DW,p['e'],6)
     if k is not None: return ('W',k),'geom-drywell'
-    c=[P[i] for i in nb if math.dist(P[i]['e'],p['e'])>TOL and LIVE(P[i]) and size(P[i])>=size(p)]
+    c=[P[i] for i in nb if math.dist(P[i]['e'],p['e'])>TOL and P[i]['status']!='ABANDONED' and size(P[i])>=size(p)]
+    c=[q for q in c if LIVE(q)] or c
     if c: return ('P',max(c,key=size)['i']),'geom-tie'
     return None,'end'
 NX=[];HOW=[]
@@ -117,7 +119,7 @@ for _round in range(3):
             last=P[m]; ups=_upset(m)|cyc
             for j,d in near(last['e'],5).items():
                 q=P[j]
-                if j in ups or not LIVE(q): continue
+                if j in ups or q['status']=='ABANDONED': continue
                 if last['dinv'] is not None and q['dinv'] is not None and q['dinv']>last['dinv']+2: continue
                 qp,qt=_trace_basic(j)
                 if cyc & set(qp): continue

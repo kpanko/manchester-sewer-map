@@ -5,7 +5,7 @@
 <style>
 :root{
   --ground:#EEF1EE; --surface:#F8FAF8; --ink:#18231F; --muted:#5C6B66; --line:#D5DCD7; --street:#C4CDC8;
-  --m0:#2F6FA3; --m1:#1F8A7A; --m2:#5A7FC0; --m3:#3E9C5A; --m4:#6B5CA5; --m5:#2A93B8; --soak:#A0703A; --det:#8A8F2E; --dx:#9AA39F; --water:#9CC7E6; --waterln:#5E9DCB; --big:#18231F;
+  --m0:#2F6FA3; --m1:#1F8A7A; --m2:#5A7FC0; --m3:#3E9C5A; --m4:#6B5CA5; --m5:#2A93B8; --soak:#A0703A; --det:#8A8F2E; --dx:#9AA39F; --water:#9CC7E6; --waterln:#5E9DCB; --big:#18231F; --feed:#2B3F8C;
   --trace:#C35F1B; --pump:#6B5CA5; --good-bg:#DCEFE6; --good-ink:#0B5A45; --warn-bg:#F7E3D3; --warn-ink:#8A3F0E;
   --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
   --body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
@@ -14,13 +14,13 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --ground:#0F1513; --surface:#151D1A; --ink:#E1E9E5; --muted:#8E9F98; --line:#26322D; --street:#2C3833;
-    --m0:#6FA8DC; --m1:#4CC3AE; --m2:#8FA9E8; --m3:#6CC98A; --m4:#A898E0; --m5:#5CC3E4; --soak:#D09A5E; --det:#BFC45A; --dx:#5F6B66; --water:#1E3E57; --waterln:#3F79A8; --big:#F2F5F3;
+    --m0:#6FA8DC; --m1:#4CC3AE; --m2:#8FA9E8; --m3:#6CC98A; --m4:#A898E0; --m5:#5CC3E4; --soak:#D09A5E; --det:#BFC45A; --dx:#5F6B66; --water:#1E3E57; --waterln:#3F79A8; --big:#F2F5F3; --feed:#AEB9F5;
     --trace:#F0934A; --pump:#A898E0; --good-bg:#153329; --good-ink:#7DDBBE; --warn-bg:#3A2616; --warn-ink:#F3B27E;
   }
 }
 :root[data-theme="dark"]{
   --ground:#0F1513; --surface:#151D1A; --ink:#E1E9E5; --muted:#8E9F98; --line:#26322D; --street:#2C3833;
-  --m0:#6FA8DC; --m1:#4CC3AE; --m2:#8FA9E8; --m3:#6CC98A; --m4:#A898E0; --m5:#5CC3E4; --soak:#D09A5E; --det:#BFC45A; --dx:#5F6B66; --water:#1E3E57; --waterln:#3F79A8; --big:#F2F5F3;
+  --m0:#6FA8DC; --m1:#4CC3AE; --m2:#8FA9E8; --m3:#6CC98A; --m4:#A898E0; --m5:#5CC3E4; --soak:#D09A5E; --det:#BFC45A; --dx:#5F6B66; --water:#1E3E57; --waterln:#3F79A8; --big:#F2F5F3; --feed:#AEB9F5;
   --trace:#F0934A; --pump:#A898E0; --good-bg:#153329; --good-ink:#7DDBBE; --warn-bg:#3A2616; --warn-ink:#F3B27E;
 }
 body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
@@ -153,7 +153,7 @@ const sizeTxt=p=>{const s=SHAPE[p.shape]||"";if(!circ(p)&&p.h>0&&p.w>0&&p.h<=240
 const ftin=inch=>inch>=12?`${Math.floor(inch/12)}′${inch%12?` ${inch%12}″`:""}`:`${inch}″`;
 
 let C={};
-const readColors=()=>{const cs=getComputedStyle(document.documentElement);for(const k of ["m0","m1","m2","m3","m4","m5","soak","det","dx","water","waterln","big","street","trace","ink","surface","muted","line"])C[k]=cs.getPropertyValue("--"+k).trim()};
+const readColors=()=>{const cs=getComputedStyle(document.documentElement);for(const k of ["m0","m1","m2","m3","m4","m5","soak","det","dx","water","waterln","big","feed","street","trace","ink","surface","muted","line"])C[k]=cs.getPropertyValue("--"+k).trim()};
 readColors();
 const colorOf=p=>{const t=T[p.term];if(t.kind===0||t.kind===3)return C["m"+t.color];return t.kind===1?C.soak:t.kind===2?C.det:C.dx};
 
@@ -167,7 +167,7 @@ document.getElementById("facts").innerHTML=[[live.length.toLocaleString(),"storm
 document.getElementById("legend").innerHTML=
   `<span><i style="background:linear-gradient(90deg,var(--m0) 0 25%,var(--m1) 25% 50%,var(--m3) 50% 75%,var(--m4) 75%)"></i>Drains to an outfall (one color per drainage area)</span>`+
   `<span><i style="background:var(--soak)"></i>Soaks into the ground</span><span><i style="background:var(--det)"></i>Detention basin</span><span><i style="background:var(--dx)"></i>Data gap</span>`+
-  `<span><i style="background:var(--trace)"></i>Traced route</span><span><i style="background:var(--water)"></i>Pond / stream</span>`;
+  `<span><i style="background:var(--trace)"></i>Route from the tapped pipe to where it ends</span><span><i style="background:var(--feed)"></i>Pipes that drain into the tapped pipe</span><span><i style="background:var(--water)"></i>Pond / stream</span>`;
 
 // ---------- map ----------
 const renderer=L.canvas({padding:.5,tolerance:7});
@@ -200,7 +200,7 @@ const styleAll=()=>{
   const z=zf(),any=sel>=0;
   lines.forEach((ln,i)=>{const p=P[i],inT=traceSet.has(i),inU=upSet.has(i),big=size(p)>=48;
     const hide=bigOnly&&!big&&!inT;
-    ln.setStyle({color:inT?C.trace:colorOf(p),weight:(inT?baseW(p)+2.2:baseW(p))*z,opacity:hide?0:(!any||inT||inU?.95:.25)});
+    ln.setStyle({color:inT?C.trace:inU?C.feed:colorOf(p),weight:(inT?baseW(p)+2.2:inU?baseW(p)+.6:baseW(p))*z,opacity:hide?0:(!any||inT||inU?.95:.25)});
     if(inT)ln.bringToFront()});
   halos.forEach((h,i)=>h.setStyle({color:C.big,weight:(baseW(P[i])+3)*z,opacity:any&&!traceSet.has(i)&&!upSet.has(i)?.2:.85}));
   streetLines.forEach(l=>l.setStyle({color:C.street}));
@@ -227,7 +227,7 @@ function select(i,zoom){
   sel=i;const tr=trace(i);traceSet=new Set(tr);upSet=upstream(i);styleAll();
   const p=P[i],t=T[p.term];
   if(endMark)map.removeLayer(endMark);
-  endMark=L.circleMarker([t.y,t.x],{renderer,radius:8,color:C.surface,weight:3,fillColor:C.trace,fillOpacity:1}).addTo(map);
+  endMark=L.circleMarker([t.y,t.x],{renderer,radius:8,color:C.surface,weight:3,fillColor:C.trace,fillOpacity:1}).bindTooltip(t.kind===0?`Outfall${t.water?" → "+tc(t.water[0]):""}`:t.kind===4?"Records stop here":KIND[t.kind].name,{permanent:true,direction:"right",offset:[10,0]}).addTo(map);
   const groups=[];for(const j of tr){const q=P[j];const name=q.st>=0?tc(N[q.st]):"Off-street (yard or easement)";const g=groups[groups.length-1];
     if(g&&g.name===name){g.len+=q.len;g.max=Math.max(g.max,size(q))}else groups.push({name,len:q.len,max:size(q)})}
   const total=tr.reduce((s,j)=>s+P[j].len,0);
